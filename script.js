@@ -1,22 +1,15 @@
 window.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('turtleCanvas');
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
-    // Estado de nuestra "tortuga" virtual
     let currentX = 0;
     let currentY = 0;
     let currentAngle = 0; // en radianes
 
-    // Mapear coordenadas de Turtle (-300 a 300) a coordenadas de Canvas (0 a 600)
-    function mapX(turtleX) {
-        return 300 + turtleX;
-    }
+    function mapX(turtleX) { return 300 + turtleX; }
+    function mapY(turtleY) { return 300 - turtleY; }
 
-    function mapY(turtleY) {
-        return 300 - turtleY; // Invierte el eje Y para la web
-    }
-
-    // Funciones básicas de movimiento y dirección
     function go(x, y) {
         currentX = x;
         currentY = y;
@@ -24,49 +17,43 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     function seth(anguloGrados) {
-        // En turtle 0 es derecha, 90 arriba. En canvas adaptamos al plano estándar.
         currentAngle = (anguloGrados * Math.PI) / 180;
     }
 
-    // Dibuja un arco/círculo simulando el comportamiento de turtle.circle(radius, extent)
     function drawCircleArc(radius, extentDegrees) {
         const extentRad = (extentDegrees * Math.PI) / 180;
         
-        // Determinar el centro del círculo basado en la posición actual y dirección
-        // En turtle, el centro está a una distancia 'radius' a la izquierda del rumbo
+        // En turtle el centro está a 90 grados a la izquierda de la dirección actual
         const cxTurtle = currentX + radius * Math.cos(currentAngle + Math.PI / 2);
         const cyTurtle = currentY + radius * Math.sin(currentAngle + Math.PI / 2);
         
         const cx = mapX(cxTurtle);
         const cy = mapY(cyTurtle);
         
-        // Ángulo inicial desde el centro hacia la tortuga
+        // Ángulo inicial desde el centro hacia la posición actual
         let startAngleRad = Math.atan2(mapY(currentY) - cy, mapX(currentX) - cx);
-        
         let endAngleRad;
         let counterClockwise = false;
         
         if (radius > 0) {
-            // Giro hacia la izquierda en Turtle
             endAngleRad = startAngleRad - extentRad;
             counterClockwise = true; 
+            currentAngle += extentRad;
         } else {
-            // Giro hacia la derecha en Turtle
-            const absRadius = Math.abs(radius);
             endAngleRad = startAngleRad + extentRad;
             counterClockwise = false;
+            currentAngle -= extentRad;
         }
         
         ctx.arc(cx, cy, Math.abs(radius), startAngleRad, endAngleRad, counterClockwise);
         
-        // Actualizar la posición y ángulo final de la tortuga
-        if (radius > 0) {
-            currentAngle += extentRad;
-        } else {
-            currentAngle -= extentRad;
-        }
+        // Calcular nueva posición final de forma precisa
+        currentX = cxTurtle - Math.abs(radius) * Math.cos(startAngleRad + (radius > 0 ? -extentRad : extentRad));
+        currentY = cyTurtle - Math.abs(radius) * Math.sin(startAngleRad + (radius > 0 ? -extentRad : extentRad));
+        
+        // Ajustamos la posición exacta usando la inversión del eje Y
         currentX = cxTurtle + Math.abs(radius) * Math.cos(endAngleRad);
-        currentY = cyTurtle - Math.abs(radius) * Math.sin(endAngleRad); // Ajuste de signo por eje Y invertido
+        currentY = cyTurtle - Math.abs(radius) * Math.sin(endAngleRad);
     }
 
     function hojas(angulo) {
@@ -86,11 +73,10 @@ window.addEventListener('DOMContentLoaded', () => {
         seth(42.2);   drawCircleArc(22.66, 236.14);
         seth(114.2);  drawCircleArc(22.66, 236.14);
         seth(186.2);  drawCircleArc(22.66, 236.14);
-        seth(258.2)   drawCircleArc(22.66, 236.14);
+        seth(258.2);  drawCircleArc(22.66, 236.14);
         ctx.fill();
         ctx.stroke();
         
-        // Centro dorado de la flor
         ctx.strokeStyle = "Gold";
         ctx.fillStyle = "Gold";
         ctx.beginPath();
@@ -106,7 +92,7 @@ window.addEventListener('DOMContentLoaded', () => {
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
 
-    // 1. Papel/Envoltura del Ramo (Khaki)
+    // Envoltura principal
     ctx.strokeStyle = "DarkKhaki";
     ctx.fillStyle = "Khaki";
     ctx.beginPath();
@@ -121,7 +107,9 @@ window.addEventListener('DOMContentLoaded', () => {
     ctx.fill();
     ctx.stroke();
 
-    // Fondo o sombra de la envoltura
+    // Sombra de la envoltura
+    ctx.strokeStyle = "DarkKhaki";
+    ctx.fillStyle = "Khaki";
     ctx.beginPath();
     go(-37.02, -69.53);
     seth(98.75);  drawCircleArc(-121.74, 54.75);
@@ -130,7 +118,7 @@ window.addEventListener('DOMContentLoaded', () => {
     ctx.fill();
     ctx.stroke();
 
-    // 2. El lazo/moño (HotPink)
+    // Moño / Lazo
     ctx.strokeStyle = "MediumVioletRed";
     ctx.fillStyle = "HotPink";
     ctx.beginPath();
@@ -144,7 +132,7 @@ window.addEventListener('DOMContentLoaded', () => {
     ctx.fill();
     ctx.stroke();
 
-    // Nudo central del lazo
+    // Centro del moño
     ctx.beginPath();
     go(16.3, -99.27);
     seth(90);
@@ -152,7 +140,7 @@ window.addEventListener('DOMContentLoaded', () => {
     ctx.fill();
     ctx.stroke();
 
-    // 3. Las Hojas del Ramo (Verdes)
+    // Hojas
     ctx.strokeStyle = "DarkGreen";
     ctx.fillStyle = "LimeGreen";
     go(-79.30, 110.03); hojas(165.01);
@@ -162,7 +150,7 @@ window.addEventListener('DOMContentLoaded', () => {
     go(-100.51, 123.98); hojas(119.46);
     go(-90.46, 135.14);  hojas(22.07);
 
-    // 4. Las Flores del Ramo
+    // Flores
     ctx.strokeStyle = "Tomato"; ctx.fillStyle = "Orange";
     flor(155.36, 115.58);
 
@@ -178,10 +166,9 @@ window.addEventListener('DOMContentLoaded', () => {
     ctx.strokeStyle = "DarkGray"; ctx.fillStyle = "White";
     flor(65.71, 85.27);
 
-    // 5. Mensaje de amor
+    // Texto
     ctx.fillStyle = "Chocolate";
-    ctx.font = "bold 38px 'Apple Chancery', 'Comic Sans MS', 'cursive'";
-    ctx.textAlign = "right";
-    // Mapeamos las coordenadas go(100, -250) al sistema de la web
-    ctx.fillText("I love you", mapX(100), mapY(-230));
+    ctx.font = "bold 38px 'Comic Sans MS', cursive, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("I love you", mapX(0), mapY(-240)); 
 });
