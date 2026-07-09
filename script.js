@@ -3,6 +3,10 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
+    // --- FIJAMOS LA RESOLUCIÓN INTERNA DEL DIBUJO ---
+    canvas.width = 600;
+    canvas.height = 600;
+
     // Configuración inicial de estilos del pincel
     ctx.lineWidth = 4;
     ctx.lineCap = "round";
@@ -12,7 +16,7 @@ window.addEventListener('DOMContentLoaded', () => {
     let comandos = [];
     let comandoActual = 0;
     let progresoArco = 0;
-    const VELOCIDAD = 8; // Ajusta este número para cambiar la velocidad (más alto = más rápido)
+    const VELOCIDAD = 8; // Velocidad de la animación (más alto = más rápido)
 
     let currentX = 0;
     let currentY = 0;
@@ -82,7 +86,7 @@ window.addEventListener('DOMContentLoaded', () => {
         drawCircleArc(22.5, 360, "Gold", "Gold", true);
     }
 
-    // --- TRADUCCIÓN DE TU DIBUJO ORIGINAL A LA COLA ---
+    // --- TRADUCCIÓN DEL DIBUJO ORIGINAL A LA COLA ---
     // Envoltura Khaki
     go(40.03, -167.53);
     seth(104.91); drawCircleArc(120.54, 29.94, "DarkKhaki", "Khaki");
@@ -169,7 +173,6 @@ window.addEventListener('DOMContentLoaded', () => {
                 comandoActual++;
             } 
             else if (cmd.tipo === 'texto') {
-                // El texto se dibuja inmediatamente al final
                 ctx.fillStyle = cmd.color;
                 ctx.font = "bold 38px 'Comic Sans MS', cursive, sans-serif";
                 ctx.textAlign = "center";
@@ -186,7 +189,6 @@ window.addEventListener('DOMContentLoaded', () => {
                 
                 let startAngleRad = Math.atan2(mapY(tY) - mapY(cyTurtle), mapX(tX) - mapX(cxTurtle));
                 
-                // Avanzar la animación basándonos en la velocidad fijada
                 progresoArco += (VELOCIDAD * Math.PI) / 180;
                 let terminado = false;
                 let subExtent = progresoArco;
@@ -199,7 +201,6 @@ window.addEventListener('DOMContentLoaded', () => {
                 let endAngleRad = cmd.radius > 0 ? startAngleRad - subExtent : startAngleRad + subExtent;
                 let ccw = cmd.radius > 0;
 
-                // Dibujar la figura temporal que se está haciendo
                 ctx.beginPath();
                 rutaActual.forEach(el => {
                     if (el.tipo === 'go') ctx.moveTo(mapX(el.x), mapY(el.y));
@@ -209,7 +210,6 @@ window.addEventListener('DOMContentLoaded', () => {
                 ctx.stroke();
 
                 if (terminado) {
-                    // Guardar el tramo de arco finalizado
                     rutaActual.push({
                         tipo: 'arco',
                         cx: cxTurtle, cy: cyTurtle,
@@ -218,7 +218,6 @@ window.addEventListener('DOMContentLoaded', () => {
                         ccw: ccw
                     });
 
-                    // Actualizar posiciones finales físicas de la tortuga
                     if (cmd.radius > 0) tAng += extentRad;
                     else tAng -= extentRad;
                     tX = cxTurtle + Math.abs(cmd.radius) * Math.cos(endAngleRad);
@@ -233,14 +232,14 @@ window.addEventListener('DOMContentLoaded', () => {
                             rellenar: true,
                             elementos: [...rutaActual]
                         });
-                        rutaActual = []; // Limpiar para la siguiente figura
+                        rutaActual = [];
                     }
                     comandoActual++;
                 }
             }
             requestAnimationFrame(animar);
         } else {
-            // Cuando todo acabe, pintar el texto para que se mantenga fijo
+            // Fijar el texto finalizado
             ctx.fillStyle = "Chocolate";
             ctx.font = "bold 38px 'Comic Sans MS', cursive, sans-serif";
             ctx.textAlign = "center";
@@ -248,6 +247,5 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Iniciar bucle de animación
     animar();
 });
